@@ -1,6 +1,6 @@
 # SSC.Nob
 
-*SSC.Nob* is a simple bot I wrote for the game [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/).
+*SSC.Nob* is a simple bot I wrote for the game [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/), just for fun!
 
 *SSC* stands for Subspace Continuum. *Nob* stands for Noble One Bot. Noble One (or Nob) is meant to be a gender-neutral version of King of the Hill.
 
