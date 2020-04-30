@@ -1,0 +1,13 @@
+.env
+
+*.gem
+*.rbc
+
+/ssc.nob.yml
+
+/.yardoc/
+/core/
+/doc/
+/pkg/
+/stock/
+/web/
