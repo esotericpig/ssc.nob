@@ -34,7 +34,7 @@ Gem::Specification.new() do |spec|
   spec.licenses    = ['GPL-3.0-or-later']
   spec.homepage    = 'https://github.com/esotericpig/ssc.nob'
   spec.summary     = 'Subspace Continuum Nob (Noble One Bot).'
-  spec.description = spec.summary
+  spec.description = 'Subspace Continuum Nob (Noble One Bot). Simple chat-log-reading bot in JRuby.'
   
   spec.metadata = {
     'bug_tracker_uri' => 'https://github.com/esotericpig/ssc.nob/issues',
@@ -57,7 +57,7 @@ Gem::Specification.new() do |spec|
   
   spec.platform = 'java'
   spec.required_ruby_version = '>= 2.4'
-  #spec.requirements = []
+  spec.requirements = ['JRuby']
   
   spec.add_runtime_dependency 'attr_bool'  ,'~> 0.1'
   spec.add_runtime_dependency 'highline'   ,'~> 2.0'
