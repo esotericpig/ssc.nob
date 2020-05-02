@@ -45,7 +45,7 @@ Current Subspace configuration:
 
 Now to run *Nob*, private message yourself `!nob.start`. Private message yourself `!nob.stop` to stop it.
 
-[![asciinema demo](https://asciinema.org/a/325424.png)](https://asciinema.org/a/325424)
+[![asciinema demo](https://asciinema.org/a/326310.png)](https://asciinema.org/a/326310)
 
 ## License
 
