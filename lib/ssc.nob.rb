@@ -56,7 +56,7 @@ require 'ssc.nob/ssc_chat_log/message_parser'
 ###
 module SSCNob
   def self.run()
-    nober = SSCNober.new()
+    nober = Nober.new()
     
     nober.run()
   end
@@ -65,7 +65,11 @@ module SSCNob
     return Userface.instance
   end
   
-  class SSCNober
+  ###
+  # @author Jonathan Bradley Whited (@esotericpig)
+  # @since  0.1.1
+  ###
+  class Nober
     include Uface
     
     attr_reader :bot
@@ -78,7 +82,7 @@ module SSCNob
     attr_accessor? :testing
     attr_reader :thread
     
-    def initialize(testing: false)
+    def initialize()
       super()
       
       @bot = SSCBot.new()
@@ -88,7 +92,7 @@ module SSCNob
       @nob_time = Time.now()
       @nobing = false
       @players = {}
-      @testing = testing
+      @testing = false
       @thread = nil
     end
     
@@ -106,10 +110,10 @@ module SSCNob
       
       @chat_log = SSCChatLog.new(@config)
       
-      @chat_log.add_listener(&method(:kill_message))
-      @chat_log.add_listener(&method(:private_message))
-      @chat_log.add_listener(&method(:pub_message))
-      @chat_log.add_listener(&method(:q_namelen_message))
+      @chat_log.add_listener(&method(:handle_kill_msg))
+      @chat_log.add_listener(&method(:handle_private_msg))
+      @chat_log.add_listener(&method(:handle_pub_msg))
+      @chat_log.add_listener(&method(:handle_q_namelen_msg))
       
       puts <<~EOH
         #{uface.title('COMMANDS')}
@@ -150,32 +154,41 @@ module SSCNob
       end
     end
     
-    def kill_message(chat_log,msg)
+    def handle_kill_msg(chat_log,msg)
       return unless @nobing
       return unless msg.kill?()
       
-      if msg[:killed] == @nob
-        old_nob = @players[@nob]
-        old_nob[:time] += (Time.now() - @nob_time)
-        
-        killer = msg[:killer]
-        new_nob = @players[killer]
-        
-        if new_nob.nil?()
-          new_nob = {nobs: 0,time: 0,username: killer}
-          @players[killer] = new_nob
+      killed_username = msg[:killed]
+      killer_username = msg[:killer]
+      
+      killed = @players[killed_username]
+      killer = @players[killer_username]
+      
+      if !killed.nil?()
+        if killed.username == @nob
+          killed.time += (Time.now() - @nob_time)
+          @nob_time = Time.now()
+          
+          if killer.nil?()
+            killer = Player.new(killer_username)
+            @players[killer.username] = killer
+          end
+          
+          killer.nobs += 1
+          @nob = killer.username
+          
+          send_nob_msg("{#{killer.username}} is now the Nob!")
         end
         
-        new_nob[:nobs] += 1
-        
-        @nob = killer
-        @nob_time = Time.now()
-        
-        @bot.pub_message("Nob} {#{killer}} is now the Nob!")
+        # Only increment for people playing.
+        if !killer.nil?()
+          killed.deaths += 1
+          killer.kills += 1
+        end
       end
     end
     
-    def private_message(chat_log,msg)
+    def handle_private_msg(chat_log,msg)
       return unless msg.private?()
       
       if msg[:username] == @config.username
@@ -186,7 +199,7 @@ module SSCNob
           @nob = @config.username
           
           @players = {
-            @nob => {nobs: 1,time: 0,username: @nob}
+            @nob => Player.new(@nob,nobs: 1)
           }
           
           if !@thread.nil?()
@@ -195,39 +208,42 @@ module SSCNob
             @thread = nil
           end
           
-          @bot.pub_message('Nob} Nob bot loaded (Noble One) for 5 min!')
-          @bot.pub_message("Nob} Kill {#{@nob}} to become the Nob!")
+          mins = 5
+          
+          send_nob_msg("Nob bot loaded (Noble One) for #{mins} min!")
+          send_nob_msg("Kill {#{@nob}} to become the Nob!")
           
           @nobing = true
           @nob_time = Time.now()
           
           @thread = Thread.new() do
-            sleep(5 * 60)
+            sleep(mins * 60)
             
             @nobing = false
             
             nobler = @players[@nob]
-            nobler[:time] += (Time.now() - @nob_time)
+            nobler.time += (Time.now() - @nob_time)
             
             tops = @players.values.sort() do |p1,p2|
-              p2[:time] <=> p1[:time]
+              p2.time <=> p1.time
             end
-            tops = tops[0..2]
+            tops = tops[0..4]
             
-            @bot.pub_message('Nob} Nob bot ended!')
-            @bot.pub_message(sprintf('Nob}    | %-24s | # of Nobs | Time','Nobler'))
-            @bot.pub_message("Nob}    | #{'-' * 24} | #{'-' * 9} | #{'-' * 8}")
+            send_nob_msg('Nob bot ended!')
+            send_nob_msg(sprintf('   | %-24s | # of Nobs | Kills-Deaths | Time','Nobler'))
+            send_nob_msg("   | #{'-' * 24} | #{'-' * 9} | #{'-' * 12} | #{'-' * 8}")
             
             tops.each_with_index() do |top,i|
-              msg = sprintf("Nob} ##{i + 1} | %-24s | %-9s | %s secs",
-                top[:username],top[:nobs],top[:time].round(2))
+              msg = sprintf("##{i + 1} | %-24s | %-9s | %-12s | %.2f secs",
+                top.username,top.nobs,top.rec,top.time.round(2),
+              )
               
-              @bot.pub_message(msg)
+              send_nob_msg(msg)
             end
             
             top = tops[0]
             
-            @bot.pub_message("Nob} {#{top[:username]}} is the top Nob! Congrats!")
+            send_nob_msg("{#{top.username}} is the top Nob! Congrats!")
           end
         when '!nob.stop'
           @nobing = false
@@ -242,8 +258,7 @@ module SSCNob
       end
     end
     
-    def pub_message(chat_log,msg)
-      return unless @nobing
+    def handle_pub_msg(chat_log,msg)
       return unless msg.pub?()
       
       if msg[:username] == @config.username
@@ -251,12 +266,54 @@ module SSCNob
       end
     end
     
-    def q_namelen_message(chat_log,msg)
+    def handle_q_namelen_msg(chat_log,msg)
       return unless msg.q_namelen?()
       
       puts
       puts "Using namelen{#{msg[:namelen]}}."
       print uface.gt()
+    end
+    
+    def send_chat_msg(channel,msg)
+      send_pub_msg(";#{channel};#{msg}")
+    end
+    
+    def send_nob_msg(msg)
+      if @testing
+        send_chat_msg(0,msg)
+      else
+        send_pub_msg("nob} #{msg}")
+      end
+    end
+    
+    def send_pub_msg(msg)
+      # TODO: use config msg key
+      
+      @bot.type_key(KeyEvent::VK_TAB).paste(msg).enter()
+    end
+  end
+  
+  ###
+  # @author Jonathan Bradley Whited (@esotericpig)
+  # @since  0.1.1
+  ###
+  class Player
+    attr_accessor :deaths
+    attr_accessor :kills
+    attr_accessor :nobs
+    attr_accessor :time
+    attr_accessor :username
+    
+    def initialize(username,deaths: 0,kills: 0,nobs: 0,time: 0)
+      @deaths = deaths
+      @kills = kills
+      @nobs = nobs
+      @time = time
+      @username = username
+    end
+    
+    def rec()
+      return "#{@kills}-#{@deaths}"
     end
   end
 end

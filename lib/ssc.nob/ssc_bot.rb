@@ -48,11 +48,9 @@ module SSCNob
     attr_reader :clipboard
     attr_reader :last_message_time
     attr_reader :message_count
-    attr_accessor :message_key
     attr_reader :robot
     
-    # TODO: save message_key in config
-    def initialize(auto_delay_time: 0.2,message_key: KeyEvent::VK_TAB)
+    def initialize(auto_delay_time: 0.1)
       super()
       
       @auto_delay_time = auto_delay_time
@@ -60,7 +58,6 @@ module SSCNob
       @clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
       @last_message_time = Time.now()
       @message_count = 0
-      @message_key = message_key
       @robot = Robot.new()
       
       @robot.setAutoDelay(0) # Don't use Java's, too slow
@@ -115,14 +112,6 @@ module SSCNob
       return self
     end
     
-    def pub_message(msg)
-      type_key(@message_key).paste(msg).enter()
-      
-      sleep(1.2)
-      
-      return self
-    end
-    
     def roll_keys(*key_codes)
       key_codes.each() do |key_code|
         @robot.keyPress(key_code)
@@ -167,15 +156,15 @@ module SSCNob
       @char_codes.store(' ',[KeyEvent::VK_SPACE])
       @char_codes.store('!',[KeyEvent::VK_SHIFT,KeyEvent::VK_EXCLAMATION_MARK])
       @char_codes.store('"',[KeyEvent::VK_SHIFT,KeyEvent::VK_QUOTEDBL])
-      @char_codes.store('#',[KeyEvent::VK_SHIFT,KeyEvent::VK_3])
-      @char_codes.store('$',[KeyEvent::VK_SHIFT,KeyEvent::VK_4])
+      @char_codes.store('#',[KeyEvent::VK_SHIFT,KeyEvent::VK_NUMBER_SIGN])
+      @char_codes.store('$',[KeyEvent::VK_SHIFT,KeyEvent::VK_DOLLAR])
       @char_codes.store('%',[KeyEvent::VK_SHIFT,KeyEvent::VK_5])
-      @char_codes.store('&',[KeyEvent::VK_SHIFT,KeyEvent::VK_7])
+      @char_codes.store('&',[KeyEvent::VK_SHIFT,KeyEvent::VK_AMPERSAND])
       @char_codes.store('\'',[KeyEvent::VK_QUOTE])
-      @char_codes.store('(',[KeyEvent::VK_SHIFT,KeyEvent::VK_9])
-      @char_codes.store(')',[KeyEvent::VK_SHIFT,KeyEvent::VK_0])
-      @char_codes.store('*',[KeyEvent::VK_SHIFT,KeyEvent::VK_8])
-      @char_codes.store('+',[KeyEvent::VK_SHIFT,KeyEvent::VK_EQUALS])
+      @char_codes.store('(',[KeyEvent::VK_SHIFT,KeyEvent::VK_LEFT_PARENTHESIS])
+      @char_codes.store(')',[KeyEvent::VK_SHIFT,KeyEvent::VK_RIGHT_PARENTHESIS])
+      @char_codes.store('*',[KeyEvent::VK_SHIFT,KeyEvent::VK_ASTERISK])
+      @char_codes.store('+',[KeyEvent::VK_SHIFT,KeyEvent::VK_PLUS])
       @char_codes.store(',',[KeyEvent::VK_COMMA])
       @char_codes.store('-',[KeyEvent::VK_MINUS])
       @char_codes.store('.',[KeyEvent::VK_PERIOD])
@@ -259,6 +248,8 @@ module SSCNob
       @char_codes.store('|',[KeyEvent::VK_SHIFT,KeyEvent::VK_BACK_SLASH])
       @char_codes.store('}',[KeyEvent::VK_SHIFT,KeyEvent::VK_BRACERIGHT])
       @char_codes.store('~',[KeyEvent::VK_SHIFT,KeyEvent::VK_BACK_QUOTE])
+      @char_codes.store('¡',[KeyEvent::VK_SHIFT,KeyEvent::VK_INVERTED_EXCLAMATION_MARK])
+      @char_codes.store('€',[KeyEvent::VK_SHIFT,KeyEvent::VK_EURO_SIGN])
     end
   end
 end
