@@ -43,13 +43,6 @@ require 'ssc.nob/ssc_chat_log/message'
 require 'ssc.nob/ssc_chat_log/message_parser'
 
 
-# TODO: run options
-# run:
-# - Specify time limit (in seconds?).
-# - Specify money donation for winner.
-# - Specify who starts as Nob.
-# - Specify if testing, so do chat channel messages instead of pub.
-
 ###
 # @author Jonathan Bradley Whited (@esotericpig)
 # @since  0.1.0
@@ -88,6 +81,7 @@ module SSCNob
       @bot = SSCBot.new()
       @chat_log = nil
       @config = Config.new()
+      @donation = nil
       @nob = nil
       @nob_time = Time.now()
       @nobing = false
@@ -191,12 +185,30 @@ module SSCNob
     def handle_private_msg(chat_log,msg)
       return unless msg.private?()
       
-      if msg[:username] == @config.username
-        case msg[:message]
-        when '!nob.start'
+      message = msg[:message]
+      username = msg[:username]
+      
+      if username == @config.username
+        cmd = message.downcase()
+        
+        if cmd.start_with?('!nob.start')
           return if @nobing # Already nobing
           
-          @nob = @config.username
+          opts_msg = Util.strip(message)
+          opts_msg = Util.strip(message[10..-1])
+          opts_msg = opts_msg.split(',')
+          
+          opts = {}
+          
+          opts_msg.each() do |om|
+            om = om.split('=',2)
+            opts[om[0]] = om[1]
+          end
+          
+          @donation = opts.key?('donate') ? opts['donate'] : '2020'
+          mins = opts.key?('mins') ? opts['mins'].to_i() : 5
+          @nob = opts.key?('nob') ? opts['nob'] : @config.username
+          @testing = opts.key?('test')
           
           @players = {
             @nob => Player.new(@nob,nobs: 1)
@@ -207,8 +219,6 @@ module SSCNob
             
             @thread = nil
           end
-          
-          mins = 5
           
           send_nob_msg("Nob bot loaded (Noble One) for #{mins} min!")
           send_nob_msg("Kill {#{@nob}} to become the Nob!")
@@ -244,8 +254,12 @@ module SSCNob
             top = tops[0]
             
             send_nob_msg("{#{top.username}} is the top Nob! Congrats!")
+            
+            if !Util.blank?(@donate)
+              send_pub_msg(":TW-PubSystem:!donate #{top.username}:#{@donation}")
+            end
           end
-        when '!nob.stop'
+        elsif cmd.include?('!nob.stop')
           @nobing = false
           @players = {}
           
