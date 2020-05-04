@@ -72,7 +72,7 @@ module SSCNob
       end
       
       @thread = Thread.new() do
-        File.open(@log_file,'rt') do |fin|
+        File.open(@log_file,'rt',encoding: 'Windows-1252:UTF-8') do |fin|
           fin.seek(0,:END)
           fin.gets() # Ignore most recent line
           
