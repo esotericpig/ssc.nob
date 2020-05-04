@@ -21,11 +21,14 @@
 #++
 
 
+require 'java'
 require 'psych'
 
 require 'ssc.nob/error'
 require 'ssc.nob/userface'
 require 'ssc.nob/util'
+
+java_import 'java.awt.event.KeyEvent'
 
 
 module SSCNob
@@ -37,6 +40,7 @@ module SSCNob
     include Uface
     
     attr_reader :file
+    attr_accessor :msg_key
     attr_accessor :ssc_dir
     attr_accessor :username
     
@@ -44,12 +48,40 @@ module SSCNob
       super()
       
       @file = File.expand_path(file)
+      @msg_key = nil
       @ssc_dir = nil
       @username = nil
     end
     
+    def build_msg_key()
+      # Can be a single space ' '.
+      return @msg_key if @msg_key.nil?() || @msg_key.length == 1
+      
+      fuzzy_key = Util.strip(@msg_key).downcase()
+      
+      if fuzzy_key.empty?()
+        @msg_key = nil
+        
+        return @msg_key
+      end
+      
+      KeyEvent.constants.each() do |c|
+        name = c.to_s().downcase()
+        
+        if name.start_with?('vk_') && name.include?(fuzzy_key)
+          return KeyEvent.const_get(c)
+        end
+      end
+      
+      raise UserError,"that's an invalid msg key{#{@msg_key}}, user."
+    end
+    
     def build_ssc_log_dir()
       return File.join(@ssc_dir,'logs')
+    end
+    
+    def check_msg_key()
+      build_msg_key()
     end
     
     def check_ssc_dir()
@@ -90,6 +122,7 @@ module SSCNob
         **kargs,
       )
       
+      @msg_key = yaml[:msg_key]
       @ssc_dir = Util.strip(yaml[:ssc_dir])
       @ssc_dir = File.expand_path(@ssc_dir) if !@ssc_dir.nil?() && !@ssc_dir.empty?()
       @username = yaml[:username]
@@ -121,6 +154,16 @@ module SSCNob
         @ssc_dir = uface.ask("Where's your #{uface.ssc} folder? ")
         check_ssc_dir()
         
+        puts <<~EOM
+          What's your #{uface.color('Message Key').aqua.bold}?
+          - Can input a letter, like 'm'
+          - Can input a key code, like 'VK_TAB' or 'TAB'
+          - Can input nothing
+        EOM
+        #'
+        @msg_key = uface.ask('> ')
+        check_msg_key()
+        
         puts
         puts uface.gt(@file)
         if uface.agree('Save this configuration (y/n)? ')
@@ -131,6 +174,7 @@ module SSCNob
     
     def valid?()
       begin
+        check_msg_key()
         check_ssc_dir()
         check_username()
       rescue UserError
@@ -142,6 +186,7 @@ module SSCNob
     
     def to_s()
       yaml = {
+        'msg_key' => @msg_key,
         'username' => @username,
         'ssc_dir' => @ssc_dir,
       }
