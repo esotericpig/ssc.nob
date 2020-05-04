@@ -44,7 +44,7 @@ class SSCChatLog
     end
     
     def parse(line)
-      line = Util.rstrip(line)
+      line = line.sub(/[\r\n]+\z/,'')
       
       msg = nil
       
