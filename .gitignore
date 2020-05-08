@@ -1,13 +1,15 @@
-.env
+/.bundle/
+/.yardoc/
+/doc/
+/pkg/
+/spec/reports/
+/stock/
+/temp/
+/tmp/
 
 *.gem
 *.rbc
 
-/ssc.nob.yml
+.env
 
-/.yardoc/
-/core/
-/doc/
-/pkg/
-/stock/
-/web/
+/ssc.nob.yml
