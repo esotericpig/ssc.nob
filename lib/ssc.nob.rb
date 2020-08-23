@@ -78,6 +78,7 @@ module SSCNob
     def initialize()
       super()
       
+      @beer = false
       @bot = SSCBot.new()
       @chat_log = nil
       @config = Config.new()
@@ -88,6 +89,11 @@ module SSCNob
       @players = {}
       @testing = false
       @thread = nil
+      
+      @lotto_bot = false
+      @moka_bot = false
+      @poker_bot = false
+      @poker_thread = nil
     end
     
     def run()
@@ -105,9 +111,13 @@ module SSCNob
       @chat_log = SSCChatLog.new(@config)
       
       @chat_log.add_listener(&method(:handle_kill_msg))
-      @chat_log.add_listener(&method(:handle_private_msg))
+      @chat_log.add_listener(&method(:handle_msg))
+      @chat_log.add_listener(&method(:handle_chat_msg))
       @chat_log.add_listener(&method(:handle_pub_msg))
       @chat_log.add_listener(&method(:handle_q_namelen_msg))
+      @chat_log.add_listener(&method(:moka_bot))
+      @chat_log.add_listener(&method(:lotto_bot))
+      @chat_log.add_listener(&method(:poker_bot))
       
       puts <<~EOH
         #{uface.title('COMMANDS')}
@@ -149,7 +159,6 @@ module SSCNob
     end
     
     def handle_kill_msg(chat_log,msg)
-      return unless @nobing
       return unless msg.kill?()
       
       killed_username = msg[:killed]
@@ -158,7 +167,7 @@ module SSCNob
       killed = @players[killed_username]
       killer = @players[killer_username]
       
-      if !killed.nil?()
+      if @nobing && !killed.nil?()
         if killed.username == @nob
           killed.time += (Time.now() - @nob_time)
           @nob_time = Time.now()
@@ -179,11 +188,504 @@ module SSCNob
           killed.deaths += 1
           killer.kills += 1
         end
+      elsif @moka_bot
+        if killed.nil?()
+          killed = Player.new(killed_username)
+          @players[killed.username] = killed
+        end
+        
+        if killer.nil?()
+          killer = Player.new(killer_username)
+          @players[killer.username] = killer
+        end
+        
+        killed.deaths += 1
+        killer.kills += 1
       end
     end
     
-    def handle_private_msg(chat_log,msg)
-      return unless msg.private?()
+    def handle_msg(chat_log,msg)
+      if @beer && msg.lines[0].start_with?('  TEAM: ')
+        team = msg.lines[0][8..-1]
+        
+        team.split(/\(\d+\),?/).each() do |mem|
+          mem = Util.strip(mem)
+          @players[mem] = true
+        end
+      end
+    end
+    
+    def moka_bot(chat_log,msg)
+      if msg.chat?()
+        channel = msg[:channel]
+        message = msg[:message]
+        username = msg[:username]
+        
+        if username == @config.username
+          cmd = message.downcase()
+          
+          case cmd
+          when '!moka.start'
+            return if @moka_bot
+            
+            @players = {}
+            #@testing = true
+            
+            mins = @testing ? 1 : 5
+            
+            if !@thread.nil?()
+              @thread.kill() if @thread.alive?()
+              @thread = nil
+            end
+            
+            send_msg("Moka} Moka (MOst KillA) bot loaded for #{mins} minutes.")
+            send_msg('Moka} Top Moka gets a cup of tea!')
+            
+            @moka_bot = true
+            
+            @thread = Thread.new() do
+              sleep((mins - 1) * 60)
+              
+              tops = @players.values.sort() do |p1,p2|
+                i = p2.kills <=> p1.kills
+                i = p1.deaths <=> p2.deaths if i == 0
+                i
+              end
+              top = tops[0]
+              
+              send_msg('Moka} 1 Moka minute remaining!')
+              
+              if !top.nil?()
+                send_msg("Moka} c\\#{top.username}/ is the current Moka with #{top.kills} kill#{top.kills == 1 ? '' : 's'} and #{top.deaths} death#{top.deaths == 1 ? '' : 's'}!")
+              end
+              
+              sleep(60) # 1 min
+              
+              @moka_bot = false
+              
+              tops = @players.values.sort() do |p1,p2|
+                i = p2.kills <=> p1.kills
+                i = p1.deaths <=> p2.deaths if i == 0
+                i
+              end
+              
+              moka_recs = {}
+              moka_recs_count = 0
+              
+              tops.each() do |t|
+                mr = moka_recs[t.rec]
+                
+                if mr.nil?()
+                  moka_recs[t.rec] = mr = []
+                  moka_recs_count += 1
+                end
+                
+                mr << t
+                
+                if moka_recs_count >= 5
+                  break
+                end
+              end
+              
+              send_msg('Moka} Moka bot ended!')
+              #send_msg(sprintf('Moka}    | %-24s | Kills:Deaths','Top 5'))
+              #send_msg("Moka}    | #{'-' * 24} | #{'-' * 12}")
+              
+              #tops.each_with_index() do |player,i|
+              #  msg = sprintf("##{i + 1} | %-24s | %-12s",
+              #    player.username,player.rec,
+              #  )
+              #  
+              #  send_msg("Moka} #{msg}")
+              #end
+              
+              msg = []
+              
+              #tops.each_with_index() do |player,i|
+              moka_recs.each_with_index() do |(rec,players),i|
+                if players.length == 1
+                  player = players[0]
+                  msg << "##{i + 1} #{player.username}(#{rec})"
+                else
+                  names = []
+                  
+                  players.each() do |p|
+                    names << p.username
+                  end
+                  
+                  msg << "##{i + 1} (#{names.join(', ')})(#{rec})"
+                end
+              end
+              
+              send_msg("Moka} #{msg.join('; ')}")
+              
+              #top = tops[0]
+              top = moka_recs.values[0]
+              
+              if !top.nil?()
+                send_msg('%10')
+                
+                if top.length == 1
+                  top = top[0]
+                  
+                  send_msg("Moka} c\\#{top.username}/ is the Moka! Congrats!")
+                  send_msg(":TW-PubSystem:!buy tea:#{top.username}")
+                else
+                  top.each() do |t|
+                    send_msg("Moka} c\\#{t.username}/ is a Moka! Congrats!")
+                    send_msg(":TW-PubSystem:!buy tea:#{t.username}")
+                  end
+                end
+              end
+            end
+          when '!moka.stop'
+            @moka_bot = false
+            @players = {}
+            
+            if !@thread.nil?()
+              @thread.kill() if @thread.alive?()
+              @thread = nil
+            end
+          end
+        end
+      end
+    end
+    
+    def lotto_bot(chat_log,msg)
+      if msg.chat?()
+        channel = msg[:channel]
+        message = msg[:message]
+        username = msg[:username]
+        
+        if username == @config.username
+          cmd = message.downcase()
+          
+          case cmd
+          when '!lotto.start'
+            @lotto_bot = true
+            
+            send_chat_msg(0,'lotto bot loaded')
+          when '!lotto.stop'
+            @lotto_bot = false
+            
+            send_chat_msg(0,'lotto bot ended')
+          end
+        end
+      end
+      
+      # '  [LOTTERY]  PM !guess <#> from 1 - 100. Tickets $2,500  Jackpot $300,000  (Within 1=50%,~5=20%)  -TW-PubSystem'
+      if @lotto_bot && msg.lines[0].start_with?('  [LOTTERY]  PM !guess <#> from')
+        rand_num = rand(100) + 1 # 1-100
+        
+        send_pub_msg(":TW-PubSystem:!guess #{rand_num}")
+      end
+    end
+    
+    def poker_bot(chat_log,msg)
+      if msg.chat?()
+        channel = msg[:channel]
+        message = msg[:message]
+        username = msg[:username]
+        
+        if username == @config.username
+          cmd = message.downcase()
+          
+          case cmd
+          when '!poker.start'
+            return if @poker_bot
+            
+            if @poker_thread
+              @poker_thread.kill() if @poker_thread.alive?()
+              @poker_thread = nil
+            end
+            
+            #send_chat_msg(0,'poker bot loaded')
+            puts 'Poker bot loaded!'
+            
+            @poker_bot = true
+            
+            @poker_thread = Thread.new() do
+              while @poker_bot
+                @poker_hand = nil
+                
+                send_pub_msg(':TW-PubSystem:!poker')
+                
+                sleep(15)
+                
+                if @poker_hand.nil?()
+                  puts 'Killing poker bot!'
+                  @poker_bot = false
+                  break
+                end
+                
+                puts @poker_hand
+                ph = PokerHand.new(@poker_hand)
+                puts ph
+                resp = ph.compute_response()
+                puts resp
+                
+                send_pub_msg(":TW-PubSystem:!poker #{resp}")
+                
+                sleep(15)
+              end
+            end
+          when '!poker.stop'
+            @poker_bot = false
+            
+            if @poker_thread
+              @poker_thread.join(5)
+              @poker_thread.kill() if @poker_thread.alive?()
+              @poker_thread = nil
+            end
+            
+            #send_chat_msg(0,'poker bot killed')
+            puts 'Poker bot killed!'
+          end
+        end
+      end
+      
+      # TW-PubSystem> 1)        Jh 7s 7h 3h 3c ...
+      if @poker_bot && msg.private?()
+        message = msg[:message]
+        username = msg[:username]
+        
+        if username.casecmp?('TW-PubSystem') && message.start_with?('1)')
+          match = /1\)\s+(?<hand>\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+.*/.match(message)
+          
+          if match
+            @poker_hand = match[:hand]
+          end
+        end
+      end
+    end
+    
+    class PokerHand
+      attr_accessor :cards
+      attr_accessor :value
+      attr_accessor :values
+      
+      def initialize(hand)
+        super()
+        
+        @cards = []
+        @value = 0
+        @values = []
+        
+        hand.split(/[[:space:]]+/).each() do |card|
+          next if card.length != 2
+          
+          value = card[0]
+          suit = card[1].to_sym()
+          
+          @cards << Card.new(value,suit)
+        end
+      end
+      
+      def compute_response()
+        is_flush = true
+        flushes = {}
+        ofakinds = Array.new(13){0}
+        prev_suit = nil
+        values = []
+        near_flush = false
+        near_flush_suit = nil
+        
+        @cards.each() do |card|
+          ofakinds[card.value - 2] += 1
+          values << card.value
+          
+          f = flushes.fetch(card.suit,0)
+          f += 1
+          flushes[card.suit] = f
+          
+          if flushes[card.suit] >= 3
+            near_flush = true
+            near_flush_suit = card.suit
+          end
+          
+          if !prev_suit.nil?() && card.suit != prev_suit
+            is_flush = false
+          end
+          
+          prev_suit = card.suit
+        end
+        
+        is_2ofakind = false
+        is_2pair = false
+        is_3ofakind = false
+        is_4ofakind = false
+        
+        ofakinds.each() do |oak|
+          case oak
+          when 2
+            if is_2ofakind
+              is_2pair = true
+            else
+              is_2ofakind = true
+            end
+          when 3 then is_3ofakind = true
+          when 4 then is_4ofakind = true
+          end
+        end
+        
+        values.sort!()
+        
+        is_bicycle = (values[0] == 2 && values[-1] == 14) # 14=Ace
+        is_straight = true
+        straight_value = values[0]
+        
+        len = values.length - 1
+        len -= 1 if is_bicycle
+        
+        bs_values = []
+        bs_count = 0
+        
+        1.upto(len) do |i|
+          straight_value += 1
+          value = values[i]
+          
+          if value != straight_value
+            bs_values << value
+            bs_count += 1
+            is_straight = false
+          end
+        end
+        
+        if is_straight && is_bicycle
+          # Change Ace value to 1 for a bicycle (wheel) straight.
+          values[-1] = 1
+          
+          values.sort!()
+        end
+        
+        if is_straight || is_flush || (is_3ofakind && is_2ofakind)
+          return 'ooooo'
+        end
+        
+        if is_4ofakind || is_3ofakind || is_2pair || is_2ofakind
+          resp = ''.dup()
+          
+          @cards.each() do |card|
+            oak = ofakinds[card.value - 2]
+            
+            if oak >= 2
+              resp << 'o'
+            else
+              resp << 'x'
+            end
+          end
+          
+          return resp
+        end
+        
+        # Near straight?
+        if bs_count == 1 || bs_count == 2
+          resp = ''.dup()
+          
+          @cards.each() do |card|
+            if bs_values.include?(card.value)
+              resp << 'x'
+            else
+              resp << 'o'
+            end
+          end
+          
+          return resp
+        end
+        
+        # Near flush?
+        if near_flush
+          resp = ''.dup()
+          
+          @cards.each() do |card|
+            if card.suit != near_flush_suit
+              resp << 'x'
+            else
+              resp << 'o'
+            end
+          end
+          
+          return resp
+        end
+        
+        # Just do high cards
+        high_cards = [values[-1]]
+        high_cards << values[-2] if rand(2) == 0
+        
+        resp = ''.dup()
+        
+        @cards.each() do |card|
+          if high_cards.include?(card.value)
+            resp << 'o'
+          else
+            resp << 'x'
+          end
+        end
+        
+        return resp
+      end
+      
+      def valid?()
+        return @cards.length == 5
+      end
+      
+      def to_s()
+        return @cards.join(' ')
+      end
+    end
+    
+    class Card
+      attr_accessor :norm
+      attr_accessor :rank
+      attr_accessor :suit
+      attr_accessor :value
+      
+      def initialize(rank,suit)
+        super()
+        
+        @rank = rank
+        @suit = suit
+        
+        case rank
+        when 'T' then @value = 10
+        when 'J' then @value = 11
+        when 'Q' then @value = 12
+        when 'K' then @value = 13
+        when 'A' then @value = 14
+        else
+          @value = rank.to_i()
+        end
+        
+        @norm = @value
+        
+        case suit
+        when :c then @norm += 100
+        when :d then @norm += 200
+        when :h then @norm += 300
+        when :s then @norm += 400
+        else
+          raise ArgumentError,"invalid suit{#{suit}}"
+        end
+      end
+      
+      def <=>(other)
+        c = (@suit <=> other.suit)
+        c = @value <=> other.value if c == 0
+        
+        return c
+      end
+      
+      def inspect()
+        return "#{@rank}(#{@value})#{@suit}"
+      end
+      
+      def to_s()
+        return "#{@rank}#{@suit}"
+      end
+    end
+    
+    def handle_chat_msg(chat_log,msg)
+      return unless msg.chat?()
       
       message = msg[:message]
       username = msg[:username]
@@ -191,7 +693,28 @@ module SSCNob
       if username == @config.username
         cmd = message.downcase()
         
-        if cmd.start_with?('!nob.start')
+        if cmd.include?('!beer.start')
+          @beer = true
+        elsif cmd.include?('!beer.list')
+          send_chat_msg(4,"players: #{@players.length}")
+          send_chat_msg(4,@players.keys.join(', '))
+        elsif cmd.include?('!beer.me')
+          if @beer
+            @beer = false
+            
+            @players.keys.each() do |name|
+              next if name == @config.username
+              
+              send_pub_msg(":TW-PubSystem:!buy beer:#{name}")
+              sleep(6)
+            end
+            
+            @players = {}
+          end
+        elsif cmd.include?('!beer.stop')
+          @beer = false
+          @players = {}
+        elsif cmd.start_with?('!nob.start')
           return if @nobing # Already nobing
           
           opts_msg = Util.strip(message)
@@ -205,10 +728,11 @@ module SSCNob
             opts[om[0]] = om[1]
           end
           
-          @donation = opts.key?('donate') ? opts['donate'] : '2020'
+          @donation = opts['donate']
+          @donation = nil if Util.blank?(@donation)
           mins = opts.key?('mins') ? opts['mins'].to_i() : 5
           @nob = opts.key?('nob') ? opts['nob'] : @config.username
-          @testing = opts.key?('test')
+          @testing = true if opts.key?('test')
           
           @players = {
             @nob => Player.new(@nob,nobs: 1)
@@ -220,8 +744,12 @@ module SSCNob
             @thread = nil
           end
           
-          send_nob_msg("Nob bot loaded (Noble One) for #{mins} min!")
+          send_nob_msg("Nob bot loaded (Noble One) for #{mins} min.")
           send_nob_msg("Kill {#{@nob}} to become the Nob!")
+          
+          if !@donation.nil?()
+            send_nob_msg("Top Nob gets #{@donation} pub bux!")
+          end
           
           @nobing = true
           @nob_time = Time.now()
@@ -240,7 +768,7 @@ module SSCNob
             tops = tops[0..4]
             
             send_nob_msg('Nob bot ended!')
-            send_nob_msg(sprintf('   | %-24s | # of Nobs | Kills-Deaths | Time','Nobler'))
+            send_nob_msg(sprintf('   | %-24s | # of Nobs | Kills:Deaths | Time','Nobler'))
             send_nob_msg("   | #{'-' * 24} | #{'-' * 9} | #{'-' * 12} | #{'-' * 8}")
             
             tops.each_with_index() do |top,i|
@@ -255,7 +783,7 @@ module SSCNob
             
             send_nob_msg("{#{top.username}} is the top Nob! Congrats!")
             
-            if !Util.blank?(@donate)
+            if !@donation.nil?()
               send_pub_msg(":TW-PubSystem:!donate #{top.username}:#{@donation}")
             end
           end
@@ -274,10 +802,6 @@ module SSCNob
     
     def handle_pub_msg(chat_log,msg)
       return unless msg.pub?()
-      
-      if msg[:username] == @config.username
-        @bot.prevent_flooding()
-      end
     end
     
     def handle_q_namelen_msg(chat_log,msg)
@@ -304,6 +828,15 @@ module SSCNob
       # TODO: use config msg key
       
       @bot.type_key(KeyEvent::VK_TAB).paste(msg).enter()
+      @bot.prevent_flooding()
+    end
+    
+    def send_msg(msg)
+      if @testing
+        send_chat_msg(0,msg)
+      else
+        send_pub_msg(msg)
+      end
     end
   end
   
@@ -327,7 +860,7 @@ module SSCNob
     end
     
     def rec()
-      return "#{@kills}-#{@deaths}"
+      return "#{@kills}:#{@deaths}"
     end
   end
 end
