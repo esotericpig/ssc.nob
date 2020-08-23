@@ -41,7 +41,7 @@ module SSCNob
   ###
   class SSCBot
     MESSAGE_FLOOD_COUNT = 8
-    MESSAGE_FLOOD_TIME = 5
+    MESSAGE_FLOOD_TIME = 6
     
     attr_accessor :auto_delay_time
     attr_reader :char_codes
@@ -99,10 +99,10 @@ module SSCNob
       
       if @message_count >= MESSAGE_FLOOD_COUNT
         time_diff = Time.now() - @last_message_time
+        time_diff = (MESSAGE_FLOOD_TIME - time_diff).round()
+        time_diff = 1 if time_diff < 1 # Always sleep for at least 1 sec
         
-        if time_diff <= MESSAGE_FLOOD_TIME
-          sleep(MESSAGE_FLOOD_TIME - time_diff)
-        end
+        sleep(time_diff)
         
         @message_count = 0
       end
