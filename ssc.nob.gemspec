@@ -55,13 +55,14 @@ Gem::Specification.new() do |spec|
     %w( CHANGELOG.md LICENSE.txt README.md ),
   ].flatten()
   
-  spec.platform = 'java'
-  spec.required_ruby_version = '>= 2.4'
-  spec.requirements = ['JRuby']
+  spec.platform              = 'java'
+  spec.required_ruby_version = '>= 2.5'
+  spec.requirements          = ['JRuby']
   
   spec.add_runtime_dependency 'attr_bool'  ,'~> 0.1'
   spec.add_runtime_dependency 'highline'   ,'~> 2.0'
   spec.add_runtime_dependency 'rainbow'    ,'~> 3.0'
+  spec.add_runtime_dependency 'ssc.bot'    ,'~> 0.1'
   spec.add_runtime_dependency 'tty-spinner','~> 0.9'
   
   spec.add_development_dependency 'bundler' ,'~> 2.1'

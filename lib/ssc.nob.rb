@@ -29,18 +29,15 @@ if TESTING
 end
 
 require 'attr_bool'
+require 'ssc.bot'
+require 'ssc.bot/user/jrobot_message_sender'
 require 'time'
 
 require 'ssc.nob/config'
 require 'ssc.nob/error'
-require 'ssc.nob/ssc_bot'
-require 'ssc.nob/ssc_chat_log'
 require 'ssc.nob/userface'
 require 'ssc.nob/util'
 require 'ssc.nob/version'
-
-require 'ssc.nob/ssc_chat_log/message'
-require 'ssc.nob/ssc_chat_log/message_parser'
 
 
 ###
@@ -65,9 +62,9 @@ module SSCNob
   class Nober
     include Uface
     
-    attr_reader :bot
     attr_reader :chat_log
     attr_reader :config
+    attr_reader :msg_sender
     attr_reader :nob
     attr_reader :nob_time
     attr_reader :nobing
@@ -79,10 +76,10 @@ module SSCNob
       super()
       
       @beer = false
-      @bot = SSCBot.new()
       @chat_log = nil
       @config = Config.new()
       @donation = nil
+      @msg_sender = SSCBot::User::JRobotMessageSender.new()
       @nob = nil
       @nob_time = Time.now()
       @nobing = false
@@ -108,16 +105,19 @@ module SSCNob
         return
       end
       
-      @chat_log = SSCChatLog.new(@config)
+      @msg_sender.msg_key = @config.build_msg_key()
+      #@msg_sender.warn_user = true
       
-      @chat_log.add_listener(&method(:handle_kill_msg))
-      @chat_log.add_listener(&method(:handle_msg))
-      @chat_log.add_listener(&method(:handle_chat_msg))
-      @chat_log.add_listener(&method(:handle_pub_msg))
-      @chat_log.add_listener(&method(:handle_q_namelen_msg))
-      @chat_log.add_listener(&method(:moka_bot))
-      @chat_log.add_listener(&method(:lotto_bot))
-      @chat_log.add_listener(&method(:poker_bot))
+      @chat_log = SSCBot::ChatLog.new(File.join(@config.build_ssc_log_dir(),'nob.log'))
+      
+      @chat_log.add_observer(self,:handle_kill_msg,type: :kill)
+      @chat_log.add_observer(self,:handle_msg)
+      @chat_log.add_observer(self,:handle_chat_msg,type: :chat)
+      @chat_log.add_observer(self,:handle_pub_msg,type: :pub)
+      @chat_log.add_observer(self,:handle_q_namelen_msg,type: %s{?namelen})
+      @chat_log.add_observer(self,:moka_bot)
+      @chat_log.add_observer(self,:lotto_bot)
+      @chat_log.add_observer(self,:poker_bot)
       
       puts <<~EOH
         #{uface.title('COMMANDS')}
@@ -141,7 +141,7 @@ module SSCNob
           
           return
         when 'run'
-          if @chat_log.running?()
+          if @chat_log.alive?()
             puts
             puts uface.error('stop the current Nob first, user.')
             puts
@@ -159,10 +159,8 @@ module SSCNob
     end
     
     def handle_kill_msg(chat_log,msg)
-      return unless msg.kill?()
-      
-      killed_username = msg[:killed]
-      killer_username = msg[:killer]
+      killed_username = msg.killed
+      killer_username = msg.killer
       
       killed = @players[killed_username]
       killer = @players[killer_username]
@@ -205,8 +203,8 @@ module SSCNob
     end
     
     def handle_msg(chat_log,msg)
-      if @beer && msg.lines[0].start_with?('  TEAM: ')
-        team = msg.lines[0][8..-1]
+      if @beer && msg.line.start_with?('  TEAM: ')
+        team = msg.line[8..-1]
         
         team.split(/\(\d+\),?/).each() do |mem|
           mem = Util.strip(mem)
@@ -216,10 +214,10 @@ module SSCNob
     end
     
     def moka_bot(chat_log,msg)
-      if msg.chat?()
-        channel = msg[:channel]
-        message = msg[:message]
-        username = msg[:username]
+      if msg.type?(:chat)
+        channel = msg.channel
+        message = msg.message
+        username = msg.name
         
         if username == @config.username
           cmd = message.downcase()
@@ -352,10 +350,10 @@ module SSCNob
     end
     
     def lotto_bot(chat_log,msg)
-      if msg.chat?()
-        channel = msg[:channel]
-        message = msg[:message]
-        username = msg[:username]
+      if msg.type?(:chat)
+        channel = msg.channel
+        message = msg.message
+        username = msg.name
         
         if username == @config.username
           cmd = message.downcase()
@@ -374,7 +372,7 @@ module SSCNob
       end
       
       # '  [LOTTERY]  PM !guess <#> from 1 - 100. Tickets $2,500  Jackpot $300,000  (Within 1=50%,~5=20%)  -TW-PubSystem'
-      if @lotto_bot && msg.lines[0].start_with?('  [LOTTERY]  PM !guess <#> from')
+      if @lotto_bot && msg.line.start_with?('  [LOTTERY]  PM !guess <#> from')
         rand_num = rand(100) + 1 # 1-100
         
         send_pub_msg(":TW-PubSystem:!guess #{rand_num}")
@@ -382,10 +380,10 @@ module SSCNob
     end
     
     def poker_bot(chat_log,msg)
-      if msg.chat?()
-        channel = msg[:channel]
-        message = msg[:message]
-        username = msg[:username]
+      if msg.type?(:chat)
+        channel = msg.channel
+        message = msg.message
+        username = msg.name
         
         if username == @config.username
           cmd = message.downcase()
@@ -445,9 +443,9 @@ module SSCNob
       end
       
       # TW-PubSystem> 1)        Jh 7s 7h 3h 3c ...
-      if @poker_bot && msg.private?()
-        message = msg[:message]
-        username = msg[:username]
+      if @poker_bot && msg.type?(:private)
+        message = msg.message
+        username = msg.name
         
         if username.casecmp?('TW-PubSystem') && message.start_with?('1)')
           match = /1\)\s+(?<hand>\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+.*/.match(message)
@@ -685,10 +683,8 @@ module SSCNob
     end
     
     def handle_chat_msg(chat_log,msg)
-      return unless msg.chat?()
-      
-      message = msg[:message]
-      username = msg[:username]
+      message = msg.message
+      username = msg.name
       
       if username == @config.username
         cmd = message.downcase()
@@ -801,19 +797,16 @@ module SSCNob
     end
     
     def handle_pub_msg(chat_log,msg)
-      return unless msg.pub?()
     end
     
     def handle_q_namelen_msg(chat_log,msg)
-      return unless msg.q_namelen?()
-      
       puts
-      puts "Using namelen{#{msg[:namelen]}}."
+      puts "Using namelen{#{msg.namelen}}."
       print uface.gt()
     end
     
     def send_chat_msg(channel,msg)
-      send_pub_msg(";#{channel};#{msg}")
+      @msg_sender.send_chat_to(channel,msg)
     end
     
     def send_nob_msg(msg)
@@ -825,10 +818,7 @@ module SSCNob
     end
     
     def send_pub_msg(msg)
-      # TODO: use config msg key
-      
-      @bot.type_key(KeyEvent::VK_TAB).paste(msg).enter()
-      @bot.prevent_flooding()
+      @msg_sender.send_safe(msg)
     end
     
     def send_msg(msg)
