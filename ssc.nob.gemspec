@@ -51,7 +51,7 @@ Gem::Specification.new() do |spec|
     Dir.glob(File.join("{#{spec.require_paths.join(',')}}",'**','*.{erb,rb}')),
     Dir.glob(File.join(spec.bindir,'*')),
     Dir.glob(File.join('{test,yard}','**','*.{erb,rb}')),
-    %W( Gemfile #{spec.name}.gemspec Rakefile ),
+    %W( Gemfile Gemfile.lock #{spec.name}.gemspec Rakefile ),
     %w( CHANGELOG.md LICENSE.txt README.md ),
   ].flatten()
   
