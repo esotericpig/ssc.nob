@@ -214,7 +214,7 @@ module SSCNob
     end
     
     def moka_bot(chat_log,msg)
-      if msg.type?(:chat)
+      if msg.type_chat?()
         channel = msg.channel
         message = msg.message
         username = msg.name
@@ -350,7 +350,7 @@ module SSCNob
     end
     
     def lotto_bot(chat_log,msg)
-      if msg.type?(:chat)
+      if msg.type_chat?()
         channel = msg.channel
         message = msg.message
         username = msg.name
@@ -380,7 +380,7 @@ module SSCNob
     end
     
     def poker_bot(chat_log,msg)
-      if msg.type?(:chat)
+      if msg.type_chat?()
         channel = msg.channel
         message = msg.message
         username = msg.name
@@ -443,7 +443,7 @@ module SSCNob
       end
       
       # TW-PubSystem> 1)        Jh 7s 7h 3h 3c ...
-      if @poker_bot && msg.type?(:private)
+      if @poker_bot && msg.type_private?()
         message = msg.message
         username = msg.name
         
