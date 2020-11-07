@@ -156,8 +156,8 @@ module SSCNob
         
         puts <<~EOM
           What's your #{uface.color('Message Key').aqua.bold}?
-          - Can input a letter, like 'm'
           - Can input a key code, like 'VK_TAB' or 'TAB'
+          - Can input a letter, like 'm'
           - Can input nothing
         EOM
         #'
