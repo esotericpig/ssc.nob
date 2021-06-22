@@ -4,20 +4,9 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020 Jonathan Bradley Whited (@esotericpig)
-# 
-# SSC.Nob is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# SSC.Nob is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with SSC.Nob.  If not, see <https://www.gnu.org/licenses/>.
+# Copyright (c) 2020-2021 Jonathan Bradley Whited
+#
+# SPDX-License-Identifier: GPL-3.0-or-later
 #++
 
 
@@ -36,117 +25,117 @@ java_import 'java.awt.event.KeyEvent'
 
 module SSCNob
   ###
-  # @author Jonathan Bradley Whited (@esotericpig)
+  # @author Jonathan Bradley Whited
   # @since  0.1.0
   ###
   class SSCBot
     MESSAGE_FLOOD_COUNT = 8
     MESSAGE_FLOOD_TIME = 6
-    
+
     attr_accessor :auto_delay_time
     attr_reader :char_codes
     attr_reader :clipboard
     attr_reader :last_message_time
     attr_reader :message_count
     attr_reader :robot
-    
+
     def initialize(auto_delay_time: 0.1)
       super()
-      
+
       @auto_delay_time = auto_delay_time
       @char_codes = {}
       @clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
       @last_message_time = Time.now()
       @message_count = 0
       @robot = Robot.new()
-      
+
       @robot.setAutoDelay(0) # Don't use Java's, too slow
-      
+
       build_char_codes()
     end
-    
+
     def auto_delay()
       sleep(@auto_delay_time)
-      
+
       return self
     end
-    
+
     def chat_message(channel,msg)
       return pub_message(";#{channel};#{msg}")
     end
-    
+
     def copy(str)
       @clipboard.setContents(StringSelection.new(str),nil);
-      
+
       return self
     end
-    
+
     def enter()
       return type_key(KeyEvent::VK_ENTER)
     end
-    
+
     def paste(str=nil)
       copy(str) unless str.nil?()
-      
+
       # FIXME: change to VK_META for macOS
       roll_keys(KeyEvent::VK_CONTROL,KeyEvent::VK_V)
-      
+
       return self
     end
-    
+
     def prevent_flooding()
       @message_count += 1
-      
+
       if @message_count >= MESSAGE_FLOOD_COUNT
         time_diff = Time.now() - @last_message_time
         time_diff = (MESSAGE_FLOOD_TIME - time_diff).round()
         time_diff = 1 if time_diff < 1 # Always sleep for at least 1 sec
-        
+
         sleep(time_diff)
-        
+
         @message_count = 0
       end
-      
+
       @last_message_time = Time.now()
-      
+
       return self
     end
-    
+
     def roll_keys(*key_codes)
       key_codes.each() do |key_code|
         @robot.keyPress(key_code)
         auto_delay()
       end
-      
+
       (key_codes.length - 1).downto(0) do |i|
         @robot.keyRelease(key_codes[i])
         auto_delay()
       end
-      
+
       return self
     end
-    
+
     def type(str)
       str.each_char() do |c|
         key_codes = @char_codes[c]
-        
+
         next if key_codes.nil?()
-        
+
         roll_keys(*key_codes)
       end
-      
+
       return self
     end
-    
+
     def type_key(key_code)
       @robot.keyPress(key_code)
       auto_delay()
       @robot.keyRelease(key_code)
       auto_delay()
-      
+
       return self
     end
-    
+
     def build_char_codes()
       @char_codes.store("\b",[KeyEvent::VK_BACK_SPACE])
       @char_codes.store("\f",[KeyEvent::VK_PAGE_DOWN])
