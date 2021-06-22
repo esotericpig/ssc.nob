@@ -16,7 +16,7 @@ if TESTING
   require 'bundler/setup'
 end
 
-require 'attr_bool'
+require 'attr_bool/core_ext'
 require 'ssc.bot'
 require 'ssc.bot/user/jrobot_message_sender'
 require 'time'

@@ -9,7 +9,7 @@
 #++
 
 
-require 'attr_bool'
+require 'attr_bool/core_ext'
 
 require 'ssc.nob/ssc_chat_log/message'
 require 'ssc.nob/ssc_chat_log/message_parser'
