@@ -5,7 +5,7 @@
 require_relative 'lib/ssc.nob/version'
 
 
-Gem::Specification.new() do |spec|
+Gem::Specification.new do |spec|
   spec.name        = 'ssc.nob'
   spec.version     = SSCNob::VERSION
   spec.authors     = ['Jonathan Bradley Whited']
@@ -16,10 +16,10 @@ Gem::Specification.new() do |spec|
   spec.description = 'Subspace Continuum Nob (Noble One Bot). Simple chat-log-reading bot in JRuby.'
 
   spec.metadata = {
-    'bug_tracker_uri' => 'https://github.com/esotericpig/ssc.nob/issues',
-    'changelog_uri'   => 'https://github.com/esotericpig/ssc.nob/blob/master/CHANGELOG.md',
     'homepage_uri'    => 'https://github.com/esotericpig/ssc.nob',
     'source_code_uri' => 'https://github.com/esotericpig/ssc.nob',
+    'bug_tracker_uri' => 'https://github.com/esotericpig/ssc.nob/issues',
+    'changelog_uri'   => 'https://github.com/esotericpig/ssc.nob/blob/master/CHANGELOG.md',
   }
 
   spec.require_paths = ['lib']
@@ -30,9 +30,9 @@ Gem::Specification.new() do |spec|
     Dir.glob(File.join("{#{spec.require_paths.join(',')}}",'**','*.{erb,rb}')),
     Dir.glob(File.join(spec.bindir,'*')),
     Dir.glob(File.join('{test,yard}','**','*.{erb,rb}')),
-    %W( Gemfile Gemfile.lock #{spec.name}.gemspec Rakefile ),
-    %w( CHANGELOG.md LICENSE.txt README.md ),
-  ].flatten()
+    %W[ Gemfile Gemfile.lock #{spec.name}.gemspec Rakefile ],
+    %w[ CHANGELOG.md LICENSE.txt README.md ],
+  ].flatten
 
   spec.platform              = 'java'
   spec.required_ruby_version = '>= 2.5'

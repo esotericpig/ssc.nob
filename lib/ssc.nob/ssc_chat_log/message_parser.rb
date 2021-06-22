@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -57,19 +56,19 @@ class SSCChatLog
         end
       end
 
-      msg = Message.new(line) if msg.nil?()
+      msg = Message.new(line) if msg.nil?
 
       return msg
     end
 
     # 'T Name> Msg'
     def parse_basic(line,type:)
-      i = @namelen.nil?() ? line.index('> ',2) : (@namelen + 2)
+      i = @namelen.nil? ? line.index('> ',2) : (@namelen + 2)
 
       username = line[2...i]
-      username = Util.strip(username.to_s())
+      username = Util.strip(username.to_s)
       message = line[i + 1..-1]
-      message = Util.strip(message.to_s())
+      message = Util.strip(message.to_s)
 
       return Message.new(line,type: type,meta: {
         username: username,
@@ -84,11 +83,11 @@ class SSCChatLog
       j = line.index('> ',i)
 
       channel = line[2...i]
-      channel = Util.strip(channel.to_s()).to_i()
+      channel = Util.strip(channel.to_s).to_i
       username = line[i + 1...j]
-      username = Util.strip(username.to_s())
+      username = Util.strip(username.to_s)
       message = line[j + 1..-1]
-      message = Util.strip(message.to_s())
+      message = Util.strip(message.to_s)
 
       return Message.new(line,type: :chat,meta: {
         channel: channel,
@@ -108,11 +107,11 @@ class SSCChatLog
       k = line.index(':',j)
 
       killed = line[2...i]
-      killed = Util.strip(killed.to_s())
+      killed = Util.strip(killed.to_s)
       bounty = line[i + 1...j]
-      bounty = Util.strip(bounty.to_s()).to_i()
+      bounty = Util.strip(bounty.to_s).to_i
       killer = line[k + 1..-1]
-      killer = Util.strip(killer.to_s())
+      killer = Util.strip(killer.to_s)
 
       return Message.new(line,type: :kill,meta: {
         killed: killed,
@@ -134,7 +133,7 @@ class SSCChatLog
       i = line.index(':')
 
       namelen = line[i + 1..-1]
-      namelen = Util.strip(namelen.to_s()).to_i()
+      namelen = Util.strip(namelen.to_s).to_i
 
       @namelen = namelen
 

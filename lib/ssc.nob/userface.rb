@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -32,11 +31,11 @@ module SSCNob
     def_delegators :@line,:agree,:ask,:choose,:indent,:say
     def_delegator :@rain,:wrap,:color
 
-    def initialize()
+    def initialize
       super()
 
-      @line = HighLine.new()
-      @rain = Rainbow.new()
+      @line = HighLine.new
+      @rain = Rainbow.new
 
       @line.use_color = true
       @rain.enabled = true
@@ -46,7 +45,7 @@ module SSCNob
       return color(cmd).yellow.bold
     end
 
-    def coffee()
+    def coffee
       return color('C\_/').saddlebrown.bold
     end
 
@@ -67,16 +66,16 @@ module SSCNob
         interval: 4,frames: ['o_O','O_o']
       )
 
-      if block_given?()
+      if block_given?
         spinner.run(&block)
       else
-        spinner.auto_spin()
+        spinner.auto_spin
       end
 
       return spinner
     end
 
-    def ssc()
+    def ssc
       return color('Subspace Continuum').purple.bold
     end
 
@@ -85,7 +84,7 @@ module SSCNob
     end
 
     def type(msg)
-      msg.each_char() do |c|
+      msg.each_char do |c|
         print c
         sleep(0.05)
       end
@@ -106,7 +105,7 @@ module SSCNob
   # @since  0.1.0
   ###
   module Uface
-    def uface()
+    def uface
       return Userface.instance
     end
   end

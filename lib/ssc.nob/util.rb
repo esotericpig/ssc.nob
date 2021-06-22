@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -17,23 +16,23 @@ module SSCNob
   ###
   module Util
     def self.blank?(str)
-      return str.nil?() || strip(str).empty?()
+      return str.nil? || strip(str).empty?
     end
 
     def self.lstrip(str)
-      return nil if str.nil?()
+      return nil if str.nil?
 
       return str.gsub(/\A[[:space:]]+/,'')
     end
 
     def self.rstrip(str)
-      return nil if str.nil?()
+      return nil if str.nil?
 
       return str.gsub(/[[:space:]]+\z/,'')
     end
 
     def self.strip(str)
-      return nil if str.nil?()
+      return nil if str.nil?
 
       return str.gsub(/(\A[[:space:]]+)|([[:space:]]+\z)/,'')
     end

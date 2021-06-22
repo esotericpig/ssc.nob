@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -34,7 +33,7 @@ module SSCNob
     def initialize(config,logname: 'nob.log',sleep_time: 0.2)
       @config = config
       @listeners = []
-      @log_file = File.join(config.build_ssc_log_dir(),logname)
+      @log_file = File.join(config.build_ssc_log_dir,logname)
       @logname = logname
       @messages = []
       @running = false
@@ -49,10 +48,10 @@ module SSCNob
       return self
     end
 
-    def run()
+    def run
       return if @running # Already running
 
-      stop() # Justin Case
+      stop # Justin Case
 
       if !File.exist?(@log_file)
         # Create the file.
@@ -60,22 +59,22 @@ module SSCNob
         end
       end
 
-      @thread = Thread.new() do
+      @thread = Thread.new do
         File.open(@log_file,'rt',encoding: 'Windows-1252:UTF-8') do |fin|
           fin.seek(0,:END)
-          fin.gets() # Ignore most recent line
+          fin.gets # Ignore most recent line
 
           parser = MessageParser.new(config: @config,fin: fin)
 
           @running = true
 
           while @running
-            while !(line = fin.gets()).nil?()
+            while !(line = fin.gets).nil?
               msg = parser.parse(line)
 
               @messages.push(msg)
 
-              @listeners.each() do |l|
+              @listeners.each do |l|
                 l.call(self,msg)
               end
             end
@@ -86,13 +85,13 @@ module SSCNob
       end
     end
 
-    def stop()
+    def stop
       @running = false
 
-      if !@thread.nil?()
-        if @thread.alive?()
+      if !@thread.nil?
+        if @thread.alive?
           @thread.join(5)
-          @thread.kill() if @thread.alive?()
+          @thread.kill if @thread.alive?
         end
 
         @thread = nil

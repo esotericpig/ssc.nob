@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -44,17 +43,17 @@ module SSCNob
 
       @auto_delay_time = auto_delay_time
       @char_codes = {}
-      @clipboard = Toolkit.getDefaultToolkit().getSystemClipboard()
-      @last_message_time = Time.now()
+      @clipboard = Toolkit.getDefaultToolkit.getSystemClipboard
+      @last_message_time = Time.now
       @message_count = 0
-      @robot = Robot.new()
+      @robot = Robot.new
 
       @robot.setAutoDelay(0) # Don't use Java's, too slow
 
-      build_char_codes()
+      build_char_codes
     end
 
-    def auto_delay()
+    def auto_delay
       sleep(@auto_delay_time)
 
       return self
@@ -65,17 +64,17 @@ module SSCNob
     end
 
     def copy(str)
-      @clipboard.setContents(StringSelection.new(str),nil);
+      @clipboard.setContents(StringSelection.new(str),nil)
 
       return self
     end
 
-    def enter()
+    def enter
       return type_key(KeyEvent::VK_ENTER)
     end
 
     def paste(str=nil)
-      copy(str) unless str.nil?()
+      copy(str) unless str.nil?
 
       # FIXME: change to VK_META for macOS
       roll_keys(KeyEvent::VK_CONTROL,KeyEvent::VK_V)
@@ -83,12 +82,12 @@ module SSCNob
       return self
     end
 
-    def prevent_flooding()
+    def prevent_flooding
       @message_count += 1
 
       if @message_count >= MESSAGE_FLOOD_COUNT
-        time_diff = Time.now() - @last_message_time
-        time_diff = (MESSAGE_FLOOD_TIME - time_diff).round()
+        time_diff = Time.now - @last_message_time
+        time_diff = (MESSAGE_FLOOD_TIME - time_diff).round
         time_diff = 1 if time_diff < 1 # Always sleep for at least 1 sec
 
         sleep(time_diff)
@@ -96,30 +95,30 @@ module SSCNob
         @message_count = 0
       end
 
-      @last_message_time = Time.now()
+      @last_message_time = Time.now
 
       return self
     end
 
     def roll_keys(*key_codes)
-      key_codes.each() do |key_code|
+      key_codes.each do |key_code|
         @robot.keyPress(key_code)
-        auto_delay()
+        auto_delay
       end
 
       (key_codes.length - 1).downto(0) do |i|
         @robot.keyRelease(key_codes[i])
-        auto_delay()
+        auto_delay
       end
 
       return self
     end
 
     def type(str)
-      str.each_char() do |c|
+      str.each_char do |c|
         key_codes = @char_codes[c]
 
-        next if key_codes.nil?()
+        next if key_codes.nil?
 
         roll_keys(*key_codes)
       end
@@ -129,14 +128,14 @@ module SSCNob
 
     def type_key(key_code)
       @robot.keyPress(key_code)
-      auto_delay()
+      auto_delay
       @robot.keyRelease(key_code)
-      auto_delay()
+      auto_delay
 
       return self
     end
 
-    def build_char_codes()
+    def build_char_codes
       @char_codes.store("\b",[KeyEvent::VK_BACK_SPACE])
       @char_codes.store("\f",[KeyEvent::VK_PAGE_DOWN])
       @char_codes.store("\n",[KeyEvent::VK_ENTER])

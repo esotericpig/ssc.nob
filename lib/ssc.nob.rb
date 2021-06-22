@@ -9,7 +9,7 @@
 #++
 
 
-TESTING = ($0 == __FILE__)
+TESTING = ($PROGRAM_NAME == __FILE__)
 
 if TESTING
   require 'rubygems'
@@ -33,13 +33,13 @@ require 'ssc.nob/version'
 # @since  0.1.0
 ###
 module SSCNob
-  def self.run()
-    nober = Nober.new()
+  def self.run
+    nober = Nober.new
 
-    nober.run()
+    nober.run
   end
 
-  def self.uface()
+  def self.uface
     return Userface.instance
   end
 
@@ -60,16 +60,16 @@ module SSCNob
     attr_accessor? :testing
     attr_reader :thread
 
-    def initialize()
+    def initialize
       super()
 
       @beer = false
       @chat_log = nil
-      @config = Config.new()
+      @config = Config.new
       @donation = nil
-      @msg_sender = SSCBot::User::JRobotMessageSender.new()
+      @msg_sender = SSCBot::User::JRobotMessageSender.new
       @nob = nil
-      @nob_time = Time.now()
+      @nob_time = Time.now
       @nobing = false
       @players = {}
       @testing = false
@@ -81,10 +81,10 @@ module SSCNob
       @poker_thread = nil
     end
 
-    def run()
+    def run
       begin
         puts
-        @config.user_init!()
+        @config.user_init!
         puts
       rescue UserError => e
         puts
@@ -93,35 +93,35 @@ module SSCNob
         return
       end
 
-      @msg_sender.msg_key = @config.build_msg_key()
+      @msg_sender.msg_key = @config.build_msg_key
       #@msg_sender.warn_user = true
 
-      @chat_log = SSCBot::ChatLog.new(File.join(@config.build_ssc_log_dir(),'nob.log'))
+      @chat_log = SSCBot::ChatLog.new(File.join(@config.build_ssc_log_dir,'nob.log'))
 
       @chat_log.add_observer(self,:handle_kill_msg,type: :kill)
       @chat_log.add_observer(self,:handle_msg)
       @chat_log.add_observer(self,:handle_chat_msg,type: :chat)
       @chat_log.add_observer(self,:handle_pub_msg,type: :pub)
-      @chat_log.add_observer(self,:handle_q_namelen_msg,type: %s{?namelen})
+      @chat_log.add_observer(self,:handle_q_namelen_msg,type: %s(?namelen))
       @chat_log.add_observer(self,:moka_bot)
       @chat_log.add_observer(self,:lotto_bot)
       @chat_log.add_observer(self,:poker_bot)
 
-      puts <<~EOH
+      puts <<~HELP
         #{uface.title('COMMANDS')}
         #{uface.cmd('run')}           runs Nob
         #{uface.cmd('stop')}          stops Nob
         #{uface.cmd('exit, quit')}    goodbye, user
-      EOH
+      HELP
       puts
 
       while true
-        cmd = uface.ask(uface.gt())
-        cmd = Util.strip(cmd.to_s()).downcase()
+        cmd = uface.ask(uface.gt)
+        cmd = Util.strip(cmd.to_s).downcase
 
         case cmd
         when 'exit','quit'
-          @chat_log.stop()
+          @chat_log.stop
 
           puts
           uface.types("You don't #{uface.love('love')} me? #{uface.love('<3')}")
@@ -129,15 +129,15 @@ module SSCNob
 
           return
         when 'run'
-          if @chat_log.alive?()
+          if @chat_log.alive?
             puts
             puts uface.error('stop the current Nob first, user.')
             puts
           else
-            @chat_log.run()
+            @chat_log.run
           end
         when 'stop'
-          @chat_log.stop()
+          @chat_log.stop
         else
           puts
           puts uface.error("that's an invalid command, user.")
@@ -153,12 +153,12 @@ module SSCNob
       killed = @players[killed_username]
       killer = @players[killer_username]
 
-      if @nobing && !killed.nil?()
+      if @nobing && !killed.nil?
         if killed.username == @nob
-          killed.time += (Time.now() - @nob_time)
-          @nob_time = Time.now()
+          killed.time += (Time.now - @nob_time)
+          @nob_time = Time.now
 
-          if killer.nil?()
+          if killer.nil?
             killer = Player.new(killer_username)
             @players[killer.username] = killer
           end
@@ -170,17 +170,17 @@ module SSCNob
         end
 
         # Only increment for people playing.
-        if !killer.nil?()
+        if !killer.nil?
           killed.deaths += 1
           killer.kills += 1
         end
       elsif @moka_bot
-        if killed.nil?()
+        if killed.nil?
           killed = Player.new(killed_username)
           @players[killed.username] = killed
         end
 
-        if killer.nil?()
+        if killer.nil?
           killer = Player.new(killer_username)
           @players[killer.username] = killer
         end
@@ -194,7 +194,7 @@ module SSCNob
       if @beer && msg.line.start_with?('  TEAM: ')
         team = msg.line[8..-1]
 
-        team.split(/\(\d+\),?/).each() do |mem|
+        team.split(/\(\d+\),?/).each do |mem|
           mem = Util.strip(mem)
           @players[mem] = true
         end
@@ -202,13 +202,13 @@ module SSCNob
     end
 
     def moka_bot(chat_log,msg)
-      if msg.type_chat?()
+      if msg.type_chat?
         channel = msg.channel
         message = msg.message
         username = msg.name
 
         if username == @config.username
-          cmd = message.downcase()
+          cmd = message.downcase
 
           case cmd
           when '!moka.start'
@@ -219,8 +219,8 @@ module SSCNob
 
             mins = @testing ? 1 : 5
 
-            if !@thread.nil?()
-              @thread.kill() if @thread.alive?()
+            if !@thread.nil?
+              @thread.kill if @thread.alive?
               @thread = nil
             end
 
@@ -229,10 +229,10 @@ module SSCNob
 
             @moka_bot = true
 
-            @thread = Thread.new() do
+            @thread = Thread.new do
               sleep((mins - 1) * 60)
 
-              tops = @players.values.sort() do |p1,p2|
+              tops = @players.values.sort do |p1,p2|
                 i = p2.kills <=> p1.kills
                 i = p1.deaths <=> p2.deaths if i == 0
                 i
@@ -241,15 +241,19 @@ module SSCNob
 
               send_msg('Moka} 1 Moka minute remaining!')
 
-              if !top.nil?()
-                send_msg("Moka} c\\#{top.username}/ is the current Moka with #{top.kills} kill#{top.kills == 1 ? '' : 's'} and #{top.deaths} death#{top.deaths == 1 ? '' : 's'}!")
+              if !top.nil?
+                send_msg(
+                  "Moka} c\\#{top.username}/ is the current Moka" \
+                  " with #{top.kills} kill#{top.kills == 1 ? '' : 's'}" \
+                  " and #{top.deaths} death#{top.deaths == 1 ? '' : 's'}!"
+                )
               end
 
               sleep(60) # 1 min
 
               @moka_bot = false
 
-              tops = @players.values.sort() do |p1,p2|
+              tops = @players.values.sort do |p1,p2|
                 i = p2.kills <=> p1.kills
                 i = p1.deaths <=> p2.deaths if i == 0
                 i
@@ -258,10 +262,10 @@ module SSCNob
               moka_recs = {}
               moka_recs_count = 0
 
-              tops.each() do |t|
+              tops.each do |t|
                 mr = moka_recs[t.rec]
 
-                if mr.nil?()
+                if mr.nil?
                   moka_recs[t.rec] = mr = []
                   moka_recs_count += 1
                 end
@@ -288,14 +292,14 @@ module SSCNob
               msg = []
 
               #tops.each_with_index() do |player,i|
-              moka_recs.each_with_index() do |(rec,players),i|
+              moka_recs.each_with_index do |(rec,players),i|
                 if players.length == 1
                   player = players[0]
                   msg << "##{i + 1} #{player.username}(#{rec})"
                 else
                   names = []
 
-                  players.each() do |p|
+                  players.each do |p|
                     names << p.username
                   end
 
@@ -308,7 +312,7 @@ module SSCNob
               #top = tops[0]
               top = moka_recs.values[0]
 
-              if !top.nil?()
+              if !top.nil?
                 send_msg('%10')
 
                 if top.length == 1
@@ -317,7 +321,7 @@ module SSCNob
                   send_msg("Moka} c\\#{top.username}/ is the Moka! Congrats!")
                   send_msg(":TW-PubSystem:!buy tea:#{top.username}")
                 else
-                  top.each() do |t|
+                  top.each do |t|
                     send_msg("Moka} c\\#{t.username}/ is a Moka! Congrats!")
                     send_msg(":TW-PubSystem:!buy tea:#{t.username}")
                   end
@@ -328,8 +332,8 @@ module SSCNob
             @moka_bot = false
             @players = {}
 
-            if !@thread.nil?()
-              @thread.kill() if @thread.alive?()
+            if !@thread.nil?
+              @thread.kill if @thread.alive?
               @thread = nil
             end
           end
@@ -338,13 +342,13 @@ module SSCNob
     end
 
     def lotto_bot(chat_log,msg)
-      if msg.type_chat?()
+      if msg.type_chat?
         channel = msg.channel
         message = msg.message
         username = msg.name
 
         if username == @config.username
-          cmd = message.downcase()
+          cmd = message.downcase
 
           case cmd
           when '!lotto.start'
@@ -359,29 +363,30 @@ module SSCNob
         end
       end
 
-      # '  [LOTTERY]  PM !guess <#> from 1 - 100. Tickets $2,500  Jackpot $300,000  (Within 1=50%,~5=20%)  -TW-PubSystem'
+      # '  [LOTTERY]  PM !guess <#> from 1 - 100. Tickets $2,500' \
+      # '  Jackpot $300,000  (Within 1=50%,~5=20%)  -TW-PubSystem'
       if @lotto_bot && msg.line.start_with?('  [LOTTERY]  PM !guess <#> from')
-        rand_num = rand(100) + 1 # 1-100
+        rand_num = rand(1..100) # 1-100
 
         send_pub_msg(":TW-PubSystem:!guess #{rand_num}")
       end
     end
 
     def poker_bot(chat_log,msg)
-      if msg.type_chat?()
+      if msg.type_chat?
         channel = msg.channel
         message = msg.message
         username = msg.name
 
         if username == @config.username
-          cmd = message.downcase()
+          cmd = message.downcase
 
           case cmd
           when '!poker.start'
             return if @poker_bot
 
             if @poker_thread
-              @poker_thread.kill() if @poker_thread.alive?()
+              @poker_thread.kill if @poker_thread.alive?
               @poker_thread = nil
             end
 
@@ -390,7 +395,7 @@ module SSCNob
 
             @poker_bot = true
 
-            @poker_thread = Thread.new() do
+            @poker_thread = Thread.new do
               while @poker_bot
                 @poker_hand = nil
 
@@ -398,7 +403,7 @@ module SSCNob
 
                 sleep(15)
 
-                if @poker_hand.nil?()
+                if @poker_hand.nil?
                   puts 'Killing poker bot!'
                   @poker_bot = false
                   break
@@ -407,7 +412,7 @@ module SSCNob
                 puts @poker_hand
                 ph = PokerHand.new(@poker_hand)
                 puts ph
-                resp = ph.compute_response()
+                resp = ph.compute_response
                 puts resp
 
                 send_pub_msg(":TW-PubSystem:!poker #{resp}")
@@ -420,7 +425,7 @@ module SSCNob
 
             if @poker_thread
               @poker_thread.join(5)
-              @poker_thread.kill() if @poker_thread.alive?()
+              @poker_thread.kill if @poker_thread.alive?
               @poker_thread = nil
             end
 
@@ -431,7 +436,7 @@ module SSCNob
       end
 
       # TW-PubSystem> 1)        Jh 7s 7h 3h 3c ...
-      if @poker_bot && msg.type_private?()
+      if @poker_bot && msg.type_private?
         message = msg.message
         username = msg.name
 
@@ -457,17 +462,17 @@ module SSCNob
         @value = 0
         @values = []
 
-        hand.split(/[[:space:]]+/).each() do |card|
+        hand.split(/[[:space:]]+/).each do |card|
           next if card.length != 2
 
           value = card[0]
-          suit = card[1].to_sym()
+          suit = card[1].to_sym
 
           @cards << Card.new(value,suit)
         end
       end
 
-      def compute_response()
+      def compute_response
         is_flush = true
         flushes = {}
         ofakinds = Array.new(13){0}
@@ -476,7 +481,7 @@ module SSCNob
         near_flush = false
         near_flush_suit = nil
 
-        @cards.each() do |card|
+        @cards.each do |card|
           ofakinds[card.value - 2] += 1
           values << card.value
 
@@ -489,7 +494,7 @@ module SSCNob
             near_flush_suit = card.suit
           end
 
-          if !prev_suit.nil?() && card.suit != prev_suit
+          if !prev_suit.nil? && card.suit != prev_suit
             is_flush = false
           end
 
@@ -501,7 +506,7 @@ module SSCNob
         is_3ofakind = false
         is_4ofakind = false
 
-        ofakinds.each() do |oak|
+        ofakinds.each do |oak|
           case oak
           when 2
             if is_2ofakind
@@ -514,7 +519,7 @@ module SSCNob
           end
         end
 
-        values.sort!()
+        values.sort!
 
         is_bicycle = (values[0] == 2 && values[-1] == 14) # 14=Ace
         is_straight = true
@@ -541,7 +546,7 @@ module SSCNob
           # Change Ace value to 1 for a bicycle (wheel) straight.
           values[-1] = 1
 
-          values.sort!()
+          values.sort!
         end
 
         if is_straight || is_flush || (is_3ofakind && is_2ofakind)
@@ -549,9 +554,9 @@ module SSCNob
         end
 
         if is_4ofakind || is_3ofakind || is_2pair || is_2ofakind
-          resp = ''.dup()
+          resp = ''.dup
 
-          @cards.each() do |card|
+          @cards.each do |card|
             oak = ofakinds[card.value - 2]
 
             if oak >= 2
@@ -566,9 +571,9 @@ module SSCNob
 
         # Near straight?
         if bs_count == 1 || bs_count == 2
-          resp = ''.dup()
+          resp = ''.dup
 
-          @cards.each() do |card|
+          @cards.each do |card|
             if bs_values.include?(card.value)
               resp << 'x'
             else
@@ -581,9 +586,9 @@ module SSCNob
 
         # Near flush?
         if near_flush
-          resp = ''.dup()
+          resp = ''.dup
 
-          @cards.each() do |card|
+          @cards.each do |card|
             if card.suit != near_flush_suit
               resp << 'x'
             else
@@ -598,9 +603,9 @@ module SSCNob
         high_cards = [values[-1]]
         high_cards << values[-2] if rand(2) == 0
 
-        resp = ''.dup()
+        resp = ''.dup
 
-        @cards.each() do |card|
+        @cards.each do |card|
           if high_cards.include?(card.value)
             resp << 'o'
           else
@@ -611,11 +616,11 @@ module SSCNob
         return resp
       end
 
-      def valid?()
+      def valid?
         return @cards.length == 5
       end
 
-      def to_s()
+      def to_s
         return @cards.join(' ')
       end
     end
@@ -639,7 +644,7 @@ module SSCNob
         when 'K' then @value = 13
         when 'A' then @value = 14
         else
-          @value = rank.to_i()
+          @value = rank.to_i
         end
 
         @norm = @value
@@ -661,11 +666,11 @@ module SSCNob
         return c
       end
 
-      def inspect()
+      def inspect
         return "#{@rank}(#{@value})#{@suit}"
       end
 
-      def to_s()
+      def to_s
         return "#{@rank}#{@suit}"
       end
     end
@@ -675,7 +680,7 @@ module SSCNob
       username = msg.name
 
       if username == @config.username
-        cmd = message.downcase()
+        cmd = message.downcase
 
         if cmd.include?('!beer.start')
           @beer = true
@@ -686,7 +691,7 @@ module SSCNob
           if @beer
             @beer = false
 
-            @players.keys.each() do |name|
+            @players.each_key do |name|
               next if name == @config.username
 
               send_pub_msg(":TW-PubSystem:!buy beer:#{name}")
@@ -707,14 +712,14 @@ module SSCNob
 
           opts = {}
 
-          opts_msg.each() do |om|
+          opts_msg.each do |om|
             om = om.split('=',2)
             opts[om[0]] = om[1]
           end
 
           @donation = opts['donate']
           @donation = nil if Util.blank?(@donation)
-          mins = opts.key?('mins') ? opts['mins'].to_i() : 5
+          mins = opts.key?('mins') ? opts['mins'].to_i : 5
           @nob = opts.key?('nob') ? opts['nob'] : @config.username
           @testing = true if opts.key?('test')
 
@@ -722,8 +727,8 @@ module SSCNob
             @nob => Player.new(@nob,nobs: 1)
           }
 
-          if !@thread.nil?()
-            @thread.kill() if @thread.alive?()
+          if !@thread.nil?
+            @thread.kill if @thread.alive?
 
             @thread = nil
           end
@@ -731,22 +736,22 @@ module SSCNob
           send_nob_msg("Nob bot loaded (Noble One) for #{mins} min.")
           send_nob_msg("Kill {#{@nob}} to become the Nob!")
 
-          if !@donation.nil?()
+          if !@donation.nil?
             send_nob_msg("Top Nob gets #{@donation} pub bux!")
           end
 
           @nobing = true
-          @nob_time = Time.now()
+          @nob_time = Time.now
 
-          @thread = Thread.new() do
+          @thread = Thread.new do
             sleep(mins * 60)
 
             @nobing = false
 
             nobler = @players[@nob]
-            nobler.time += (Time.now() - @nob_time)
+            nobler.time += (Time.now - @nob_time)
 
-            tops = @players.values.sort() do |p1,p2|
+            tops = @players.values.sort do |p1,p2|
               p2.time <=> p1.time
             end
             tops = tops[0..4]
@@ -755,7 +760,7 @@ module SSCNob
             send_nob_msg(sprintf('   | %-24s | # of Nobs | Kills:Deaths | Time','Nobler'))
             send_nob_msg("   | #{'-' * 24} | #{'-' * 9} | #{'-' * 12} | #{'-' * 8}")
 
-            tops.each_with_index() do |top,i|
+            tops.each_with_index do |top,i|
               msg = sprintf("##{i + 1} | %-24s | %-9s | %-12s | %.2f secs",
                 top.username,top.nobs,top.rec,top.time.round(2),
               )
@@ -767,7 +772,7 @@ module SSCNob
 
             send_nob_msg("{#{top.username}} is the top Nob! Congrats!")
 
-            if !@donation.nil?()
+            if !@donation.nil?
               send_pub_msg(":TW-PubSystem:!donate #{top.username}:#{@donation}")
             end
           end
@@ -775,8 +780,8 @@ module SSCNob
           @nobing = false
           @players = {}
 
-          if !@thread.nil?()
-            @thread.kill() if @thread.alive?()
+          if !@thread.nil?
+            @thread.kill if @thread.alive?
 
             @thread = nil
           end
@@ -790,7 +795,7 @@ module SSCNob
     def handle_q_namelen_msg(chat_log,msg)
       puts
       puts "Using namelen{#{msg.namelen}}."
-      print uface.gt()
+      print uface.gt
     end
 
     def send_chat_msg(channel,msg)
@@ -837,12 +842,12 @@ module SSCNob
       @username = username
     end
 
-    def rec()
+    def rec
       return "#{@kills}:#{@deaths}"
     end
   end
 end
 
 if TESTING
-  SSCNob.run()
+  SSCNob.run
 end

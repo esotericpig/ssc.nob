@@ -1,4 +1,3 @@
-#!/usr/bin/env ruby
 # encoding: UTF-8
 # frozen_string_literal: true
 
@@ -17,17 +16,17 @@ class SSCChatLog
   # @since  0.1.0
   ###
   class Message
-    TYPES = [
-      :unknown,
-      :chat,:freq,:kill,:private,:pub,:team,
-      :q_chat,:q_kill,:q_namelen,:q_log,
-    ]
+    TYPES = %i[
+      unknown
+      chat freq kill private pub team
+      q_chat q_kill q_namelen q_log
+    ].freeze
 
     attr_reader :lines
     attr_reader :meta
     attr_reader :type
 
-    TYPES.each() do |type|
+    TYPES.each do |type|
       define_method(:"#{type}?") do
         return @type == type
       end
