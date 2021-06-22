@@ -83,10 +83,38 @@ module SSCNob
       return color(title).blue.bold
     end
 
-    def type(msg)
+    # Types each char, including ANSI escape codes.
+    def type_raw(msg)
       msg.each_char do |c|
         print c
         sleep(0.05)
+      end
+    end
+
+    # Types each char, except for ANSI color escape codes.
+    def type(msg)
+      break_num = msg.length
+      offset = 0
+
+      while offset < msg.length
+        # Regex taken from Rainbow::StringUtils.uncolor().
+        m = msg.match(/\e\[[0-9;]*m/ui,offset)
+
+        if m
+          type_raw(msg[offset...m.begin(0)])
+          print m[0] # Don't type ANSI color escape codes.
+
+          # Next index after last, not last index,
+          #   so no need for +1.
+          offset = m.end(0)
+        else
+          type_raw(msg[offset...msg.length])
+          break
+        end
+
+        # Try to prevent an accidental infinite loop
+        #   due to a bad regex and/or logic.
+        break if (break_num -= 1) < 0
       end
     end
 
