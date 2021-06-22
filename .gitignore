@@ -7,7 +7,9 @@
 /temp/
 /tmp/
 
+*.class
 *.gem
+*.jar
 *.rbc
 
 .env

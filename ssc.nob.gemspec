@@ -38,15 +38,16 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.5'
   spec.requirements          = ['JRuby']
 
-  spec.add_runtime_dependency 'attr_bool'  ,'~> 0.1'
+  spec.add_runtime_dependency 'attr_bool'  ,'~> 0.2'
   spec.add_runtime_dependency 'highline'   ,'~> 2.0'
   spec.add_runtime_dependency 'rainbow'    ,'~> 3.0'
-  spec.add_runtime_dependency 'ssc.bot'    ,'~> 0.1'
+  spec.add_runtime_dependency 'ssc.bot'    ,'~> 0.2'
   spec.add_runtime_dependency 'tty-spinner','~> 0.9'
 
-  spec.add_development_dependency 'bundler' ,'~> 2.1'
+  spec.add_development_dependency 'bundler' ,'~> 2.2'
   spec.add_development_dependency 'minitest','~> 5.14'
   spec.add_development_dependency 'rake'    ,'~> 13.0'
+  spec.add_development_dependency 'warbler' ,'~> 2.0'
 
   #spec.post_install_message = ''
 end

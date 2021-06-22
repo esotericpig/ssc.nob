@@ -1,5 +1,10 @@
 # SSC.Nob
 
+[![Gem Version](https://badge.fury.io/rb/ssc.nob.svg)](https://badge.fury.io/rb/ssc.nob)
+[![Source Code](https://img.shields.io/badge/source-github-%23211F1F.svg)](https://github.com/esotericpig/ssc.nob)
+[![Changelog](https://img.shields.io/badge/changelog-md-%23A0522D.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/github/license/esotericpig/ssc.nob.svg)](LICENSE.txt)
+
 *SSC.Nob* is a simple bot I wrote for the game [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/), just for fun!
 
 *SSC* stands for Subspace Continuum. *Nob* stands for Noble One Bot. Noble One (or Nob) is meant to be a gender-neutral version of King of the Hill.
@@ -13,26 +18,49 @@ It's **not** a server bot and can be run & used by any user in any zone & arena.
 
 It's currently **not** a [UDP packet](https://www.twcore.org/SubspaceProtocol/) bot. It simply reads a log file for input and uses Java's Robot class for output. For SSC.Nob2 or something, I'd like to read/write packets, but will probably never make it.
 
-## Running
+## Run
+
+### From Jar
+
+Download the latest Jar from the *Assets* on the [Releases page](https://github.com/esotericpig/ssc.nob/releases).
+
+Then simply run the Jar:
+
+```
+$ java -jar ssc.nob.jar
+```
+
+### From RubyGems or Source
 
 JRuby is required. [ruby-install](https://github.com/postmodern/ruby-install) & [chruby](https://github.com/postmodern/chruby) make this easy:
 
 ```
 $ ruby-install jruby
 $ chruby jruby
-$ gem install bundler
 ```
 
-It's pretty janky at the moment, but works.
+Run the app with JRuby...
 
-Run the app with JRuby:
+Either from RubyGems:
 
 ```
-$ bundler install
-$ ruby ./lib/ssc.nob.rb
+[jruby]$ gem install ssc.nob
+[jruby]$ ssc.nob
+```
+
+Or from source:
+
+```
+[jruby]$ gem install bundler
+[jruby]$ bundler install
+[jruby]$ ruby ./lib/ssc.nob.rb
 ```
 
 **Note:** that's *bundler* with an *r*, not *bundle* (which doesn't work with JRuby).
+
+## Setup & Demo
+
+It's pretty janky at the moment, but works.
 
 You'll be asked a couple of questions. Then input the `run` command.
 
@@ -46,6 +74,26 @@ Current Subspace configuration:
 Now to run *Nob*, private message yourself `!nob.start`. Private message yourself `!nob.stop` to stop it.
 
 [![asciinema demo](https://asciinema.org/a/326310.png)](https://asciinema.org/a/326310)
+
+## Hack
+
+Use this Rake task for creating a Jar for release:
+
+```
+[jruby]$ bundler exec rake jar
+```
+
+There's a task for running as well:
+
+```
+[jruby]$ bundler exec rake runjar
+```
+
+Don't forget to include it in the release:
+
+```
+$ gh release create v0.0.0 pkg/*.jar pkg/*.gem
+```
 
 ## License
 
