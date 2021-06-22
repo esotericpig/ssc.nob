@@ -164,7 +164,10 @@ module SSCNob
         check_msg_key
         check_ssc_dir
         check_username
-      rescue UserError
+      rescue UserError => e
+        puts e.to_s.capitalize
+        puts
+
         return false
       end
 
