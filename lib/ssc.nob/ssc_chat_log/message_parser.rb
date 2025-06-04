@@ -3,21 +3,19 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020-2021 Jonathan Bradley Whited
+# Copyright (c) 2020-2021 Bradley Whited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #++
-
 
 require 'ssc.nob/util'
 
 require 'ssc.nob/ssc_chat_log/message'
 
-
 module SSCNob
 class SSCChatLog
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   class MessageParser
@@ -47,11 +45,11 @@ class SSCChatLog
         msg = parse_team(line)
       else
         case line
-        when /\A  .+\> .*\z/ # '  Name> Msg'
+        when /\A  .+> .*\z/ # '  Name> Msg'
           msg = parse_pub(line)
         when /\(\d+\) killed by: / # '  Name(100) killed by: Name'
           msg = parse_kill(line)
-        when /\A  Message Name Length\: \d+\z/ # '  Message Name Length: 24'
+        when /\A  Message Name Length: \d+\z/ # '  Message Name Length: 24'
           msg = parse_q_namelen(line)
         end
       end

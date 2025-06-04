@@ -13,7 +13,7 @@ Warbler::Config.new do |config|
   # - *executable*: embed a web server and make the war executable
   # - *runnable*: allows to run bin scripts e.g. `java -jar my.war -S rake -T`
   # - *compiled*: compile .rb files to .class files
-  config.features = %w[ gemjar runnable ]
+  config.features = %w[gemjar runnable]
 
   # Application directories to be included in the app.
   # config.dirs = %w[ lib bin ]

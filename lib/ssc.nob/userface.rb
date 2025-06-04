@@ -3,11 +3,10 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020-2021 Jonathan Bradley Whited
+# Copyright (c) 2020-2021 Bradley Whited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #++
-
 
 require 'forwardable'
 require 'highline'
@@ -15,10 +14,9 @@ require 'rainbow'
 require 'singleton'
 require 'tty-spinner'
 
-
 module SSCNob
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   class Userface
@@ -32,7 +30,7 @@ module SSCNob
     def_delegator :@rain,:wrap,:color
 
     def initialize
-      super()
+      super
 
       @line = HighLine.new
       @rain = Rainbow.new
@@ -53,7 +51,7 @@ module SSCNob
       return "#{color('Error:').red.bold} #{msg}"
     end
 
-    def gt(msg=nil)
+    def gt(msg = nil)
       return "#{color('>').yellow.bold} #{msg}"
     end
 
@@ -62,8 +60,9 @@ module SSCNob
     end
 
     def spin(msg,&block)
-      spinner = TTY::Spinner.new("[:spinner] #{msg}...",
-        interval: 4,frames: ['o_O','O_o']
+      spinner = TTY::Spinner.new(
+        "[:spinner] #{msg}...",
+        interval: 4,frames: ['o_O','O_o'],
       )
 
       if block_given?
@@ -129,7 +128,7 @@ module SSCNob
   end
 
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   module Uface

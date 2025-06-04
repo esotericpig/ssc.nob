@@ -3,21 +3,21 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020-2021 Jonathan Bradley Whited
+# Copyright (c) 2020-2021 Bradley Whited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #++
-
 
 require 'attr_bool/core_ext'
 
 require 'ssc.nob/ssc_chat_log/message'
 require 'ssc.nob/ssc_chat_log/message_parser'
 
+require 'fileutils'
 
 module SSCNob
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   class SSCChatLog
@@ -41,7 +41,7 @@ module SSCNob
       @thread = nil
     end
 
-    def add_listener(proc=nil,&block)
+    def add_listener(proc = nil,&block)
       @listeners.push(block) if block
       @listeners.push(proc) if proc
 
@@ -55,8 +55,7 @@ module SSCNob
 
       if !File.exist?(@log_file)
         # Create the file.
-        File.open(@log_file,'at') do |fout|
-        end
+        FileUtils.touch(@log_file)
       end
 
       @thread = Thread.new do

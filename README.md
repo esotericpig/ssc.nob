@@ -91,7 +91,7 @@ $ gh release create v0.0.0 pkg/*.jar pkg/*.gem
 [GNU GPL v3+](LICENSE.txt)
 
 > SSC.Nob (<https://github.com/esotericpig/ssc.nob>)  
-> Copyright (c) 2020-2021 Jonathan Bradley Whited  
+> Copyright (c) 2020-2021 Bradley Whited  
 > 
 > SSC.Nob is free software: you can redistribute it and/or modify  
 > it under the terms of the GNU General Public License as published by  

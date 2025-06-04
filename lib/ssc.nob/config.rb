@@ -3,11 +3,10 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020-2021 Jonathan Bradley Whited
+# Copyright (c) 2020-2021 Bradley Whited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #++
-
 
 require 'java'
 require 'psych'
@@ -18,10 +17,9 @@ require 'ssc.nob/util'
 
 java_import 'java.awt.event.KeyEvent'
 
-
 module SSCNob
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   class Config
@@ -32,7 +30,7 @@ module SSCNob
     attr_accessor :ssc_dir
     attr_accessor :username
 
-    def initialize(file='ssc.nob.yml')
+    def initialize(file = 'ssc.nob.yml')
       super()
 
       @file = File.expand_path(file)
@@ -102,7 +100,8 @@ module SSCNob
     def load_file!(mode: 'rt:BOM|UTF-8',**kargs)
       data = File.read(@file,mode: mode,**kargs)
 
-      yaml = Psych.safe_load(data,
+      yaml = Psych.safe_load(
+        data,
         aliases: false,
         filename: @file,
         permitted_classes: [Symbol],

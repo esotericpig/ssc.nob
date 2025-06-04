@@ -3,11 +3,10 @@
 
 #--
 # This file is part of SSC.Nob.
-# Copyright (c) 2020-2021 Jonathan Bradley Whited
+# Copyright (c) 2020-2021 Bradley Whited
 #
 # SPDX-License-Identifier: GPL-3.0-or-later
 #++
-
 
 require 'java'
 require 'time'
@@ -21,10 +20,9 @@ java_import 'java.awt.datatransfer.StringSelection'
 
 java_import 'java.awt.event.KeyEvent'
 
-
 module SSCNob
   ###
-  # @author Jonathan Bradley Whited
+  # @author Bradley Whited
   # @since  0.1.0
   ###
   class SSCBot
@@ -73,7 +71,7 @@ module SSCNob
       return type_key(KeyEvent::VK_ENTER)
     end
 
-    def paste(str=nil)
+    def paste(str = nil)
       copy(str) unless str.nil?
 
       # FIXME: change to VK_META for macOS
