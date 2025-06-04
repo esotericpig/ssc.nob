@@ -1,13 +1,11 @@
 # encoding: UTF-8
 # frozen_string_literal: true
 
-
 require 'bundler/gem_tasks'
 
 require 'rake/clean'
 require 'rake/testtask'
 require 'ssc.nob/version'
-
 
 # If PKG_DIR or JAR_FILE are changed,
 #   then 'config/warble.rb' also needs to be changed.
@@ -29,7 +27,7 @@ Rake::TestTask.new do |t|
 end
 
 desc 'Create a runnable Jar using Warbler for release'
-task :jar do |t|
+task :jar do |_t|
   puts <<~HELP
 
     ============================================
@@ -56,7 +54,7 @@ end
 # This doesn't depend on ':jar' task
 #   because Warbler naively deletes and creates a new Jar every time.
 desc 'Run the Jar created by Warbler'
-task :runjar do |t|
+task :runjar do |_t|
   # Manually create the Jar only if it doesn't exist.
   if !File.exist?(JAR_FILE)
     jar_task = Rake::Task[:jar]
