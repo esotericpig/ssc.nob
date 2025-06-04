@@ -8,12 +8,13 @@ ruby '>= 2.4',engine: 'jruby',engine_version: '>= 9.2'
 gemspec
 
 group :development,:test do
-  gem 'bundler' ,'~> 2.6'
-  gem 'rake'    ,'~> 13.3'
+  gem 'bundler'   ,'~> 2.6'
+  gem 'rake'      ,'~> 13.3'
 
-  gem 'warbler' ,'~> 2.0'
+  gem 'jruby-jars','~> 9.4' # Controls min JRE needed for running the Jar (UnsupportedClassVersionError).
+  gem 'warbler'   ,'~> 2.0'
 end
 
 group :test do
-  gem 'minitest','~> 5.25'
+  gem 'minitest'  ,'~> 5.25'
 end

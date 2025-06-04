@@ -15,7 +15,7 @@ GEM
     highline (3.1.2)
       reline
     io-console (0.8.0-java)
-    jruby-jars (10.0.0.1)
+    jruby-jars (9.4.12.1)
     jruby-rack (1.2.3)
     minitest (5.25.5)
     rainbow (3.1.1)
@@ -41,6 +41,7 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 2.6)
+  jruby-jars (~> 9.4)
   minitest (~> 5.25)
   rake (~> 13.3)
   ssc.nob!

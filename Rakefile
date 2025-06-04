@@ -34,11 +34,13 @@ task :jar do |_t|
     Make sure Warbler is installed:
       [jruby]$ bundler install
       [jruby]$ bundler update
+
     Or if the above doesn't work:
       [jruby]$ gem install warbler
 
     If this task fails, try using Bundler:
       [jruby]$ bundler exec rake jar
+
     Or try using Warbler directly:
       $ warble
 
