@@ -242,8 +242,8 @@ module SSCNob
               if !top.nil?
                 send_msg(
                   "Moka} c\\#{top.username}/ is the current Moka " \
-                  "with #{top.kills} kill#{top.kills == 1 ? '' : 's'} " \
-                  "and #{top.deaths} death#{top.deaths == 1 ? '' : 's'}!"
+                  "with #{top.kills} kill#{'s' if top.kills == 1} " \
+                  "and #{top.deaths} death#{'s' if top.deaths == 1}!"
                 )
               end
 

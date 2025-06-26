@@ -65,7 +65,7 @@ class SSCChatLog
 
       username = line[2...i]
       username = Util.strip(username.to_s)
-      message = line[i + 1..-1]
+      message = line[(i + 1)..-1]
       message = Util.strip(message.to_s)
 
       return Message.new(line,type: type,meta: {
@@ -82,9 +82,9 @@ class SSCChatLog
 
       channel = line[2...i]
       channel = Util.strip(channel.to_s).to_i
-      username = line[i + 1...j]
+      username = line[(i + 1)...j]
       username = Util.strip(username.to_s)
-      message = line[j + 1..-1]
+      message = line[(j + 1)..-1]
       message = Util.strip(message.to_s)
 
       return Message.new(line,type: :chat,meta: {
@@ -106,9 +106,9 @@ class SSCChatLog
 
       killed = line[2...i]
       killed = Util.strip(killed.to_s)
-      bounty = line[i + 1...j]
+      bounty = line[(i + 1)...j]
       bounty = Util.strip(bounty.to_s).to_i
-      killer = line[k + 1..-1]
+      killer = line[(k + 1)..-1]
       killer = Util.strip(killer.to_s)
 
       return Message.new(line,type: :kill,meta: {
@@ -130,7 +130,7 @@ class SSCChatLog
     def parse_q_namelen(line)
       i = line.index(':')
 
-      namelen = line[i + 1..-1]
+      namelen = line[(i + 1)..-1]
       namelen = Util.strip(namelen.to_s).to_i
 
       @namelen = namelen

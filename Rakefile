@@ -12,7 +12,7 @@ require 'ssc.nob/version'
 PKG_DIR = 'pkg'
 JAR_FILE = File.join(PKG_DIR,'ssc.nob.jar')
 
-CLEAN.exclude('.git/','stock/')
+CLEAN.exclude('{.git,.github,.idea,stock}/**/*')
 CLOBBER.include('doc/')
 
 task default: [:test]
